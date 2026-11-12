@@ -81,6 +81,18 @@ CREATE TABLE books (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+CREATE TABLE audit_logs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NULL,
+    action VARCHAR(50) NOT NULL,
+    target VARCHAR(255) NOT NULL,
+    ip_address VARCHAR(45) NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_audit_logs_user_id (user_id),
+    INDEX idx_audit_logs_action (action),
+    INDEX idx_audit_logs_created_at (created_at)
+);
+
 -- 7. Inserción de Roles Maestros
 INSERT INTO roles (name) VALUES ('admin'), ('client');
 
@@ -158,10 +170,10 @@ BEGIN
     JOIN roles r ON ur.role_id = r.id;
 END //
 
--- Borrar usuario por ID
 CREATE PROCEDURE sp_delete_user(IN p_id INT)
 BEGIN
     DELETE FROM users WHERE id = p_id;
+    SELECT ROW_COUNT() AS affectedRows;
 END //
 
 -- --- PROCEDIMIENTOS PARA BOOKS ---
@@ -226,6 +238,18 @@ CREATE PROCEDURE sp_update_book_metadata(
 
        SELECT * FROM books WHERE id = p_id AND user_id = p_user_id;
    END //
+   
+CREATE PROCEDURE sp_create_audit_log(
+    IN p_user_id INT,
+    IN p_action VARCHAR(50),
+    IN p_target VARCHAR(255),
+    IN p_ip_address VARCHAR(45)
+)
+BEGIN
+    INSERT INTO audit_logs (user_id, action, target, ip_address)
+    VALUES (p_user_id, p_action, p_target, p_ip_address);
+    SELECT LAST_INSERT_ID() as insertId;
+END //
 
 DELIMITER ;
 SET foreign_key_checks = 1;

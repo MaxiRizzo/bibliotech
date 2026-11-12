@@ -9,6 +9,7 @@
 
  const fileHelper = require('../utils/file_helper/file_helper');
  const bookRepository = require('../repositories/book_repository');
+ const auditRepository = require('../repositories/audit_repository'); // Capa de auditoría (Accounting)
  const i18n = require('../utils/i18n/i18n'); // Inyección del gestor de idiomas
  
  /**
@@ -103,6 +104,20 @@
  
              // Eliminar archivo físico en disco de forma síncrona
              fileHelper.deleteFile(book.file_path); 
+             
+             /**
+              * @brief Registro de auditoría asincrónico (Acción: DELETE_BOOK).
+              * @details Se ejecuta DESPUÉS de que la eliminación fue exitosa: auditamos
+              * hechos consumados, no intentos fallidos. Con 'await' el Event Loop queda
+              * libre mientras MySQL responde. Si el log falla, el error se delega a
+              * next(error) en vez de ocultarse.
+              */
+             await auditRepository.create({
+                 user_id: userId,
+                 action: auditRepository.ACTIONS.DELETE_BOOK,
+                 target: `book:${id} (${book.title})`,
+                 ip_address: req.ip
+             });
              
              const message = i18n.getMessage('CT_BOOK_DELETED_SUCCESS');
              res.json({ message });
