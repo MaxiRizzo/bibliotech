@@ -80,6 +80,27 @@ CREATE TABLE books (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
+/*
+ * @brief 6.1 Tabla de Auditoría (Accounting / Trazabilidad forense)
+ * @details Registra QUIÉN hizo QUÉ, sobre QUÉ recurso y CUÁNDO. A diferencia de un
+ * console.log, estos registros persisten en disco y se pueden consultar con SQL.
+ * @note Decisión de diseño: user_id NO tiene FOREIGN KEY hacia users. Con ON DELETE
+ * CASCADE, al borrar un usuario se borrarían también sus registros de auditoría
+ * (justo la evidencia que queremos conservar). Un log debe ser de solo-agregado.
+ * @note ip_address es VARCHAR(45) para alojar una IPv6 textual y es opcional (NULL).
+ */
+ 
+CREATE TABLE audit_logs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NULL,
+    action VARCHAR(50) NOT NULL,
+    target VARCHAR(255) NOT NULL,
+    ip_address VARCHAR(45) NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_audit_logs_user_id (user_id),
+    INDEX idx_audit_logs_action (action),
+    INDEX idx_audit_logs_created_at (created_at)
+);
 
 -- 7. Inserción de Roles Maestros
 INSERT INTO roles (name) VALUES ('admin'), ('client');
@@ -158,10 +179,18 @@ BEGIN
     JOIN roles r ON ur.role_id = r.id;
 END //
 
--- Borrar usuario por ID
+/*
+ * @brief Borrar usuario por ID.
+ * @return affectedRows Cantidad de filas borradas (0 si el id no existía).
+ * @note Se devuelve ROW_COUNT() para que el Repositorio distinga "borré uno" de
+ * "no existía". Sin esto el controlador nunca detectaba el 404 y la auditoría
+ * habría registrado eliminaciones que en realidad no ocurrieron.
+ */
+
 CREATE PROCEDURE sp_delete_user(IN p_id INT)
 BEGIN
     DELETE FROM users WHERE id = p_id;
+    SELECT ROW_COUNT() AS affectedRows;
 END //
 
 -- --- PROCEDIMIENTOS PARA BOOKS ---
@@ -226,6 +255,33 @@ CREATE PROCEDURE sp_update_book_metadata(
 
        SELECT * FROM books WHERE id = p_id AND user_id = p_user_id;
    END //
+   
+-- --- PROCEDIMIENTOS PARA AUDIT_LOGS ---
+
+/*
+ * @brief Inserta un nuevo registro de auditoría (Accounting).
+ * @param p_user_id Id del usuario que ejecutó la acción (el actor, no la víctima).
+ * @param p_action Código de la acción (ej: 'DELETE_BOOK', 'DELETE_USER').
+ * @param p_target Recurso afectado (ej: 'book:12', 'user:5').
+ * @param p_ip_address IP de origen (opcional, puede ser NULL).
+ * @return insertId Id del registro creado.
+ * @note Seguridad: el usuario 'bibliotech' solo tiene SELECT y EXECUTE, o sea NO
+ * puede hacer INSERT directo. Este SP funciona porque corre con los privilegios de
+ * su DEFINER (SQL SECURITY DEFINER es el valor por defecto). Así la app solo puede
+ * AGREGAR logs, nunca modificarlos ni borrarlos.
+ */  
+
+CREATE PROCEDURE sp_create_audit_log(
+    IN p_user_id INT,
+    IN p_action VARCHAR(50),
+    IN p_target VARCHAR(255),
+    IN p_ip_address VARCHAR(45)
+)
+BEGIN
+    INSERT INTO audit_logs (user_id, action, target, ip_address)
+    VALUES (p_user_id, p_action, p_target, p_ip_address);
+    SELECT LAST_INSERT_ID() as insertId;
+END //
 
 DELIMITER ;
 SET foreign_key_checks = 1;
