@@ -29,5 +29,6 @@
     "CT_BOOK_DELETED_SUCCESS": "Record deleted and physical file successfully removed.",
     "CT_BOOK_ID_INVALID": "The document identifier is not valid.",
     "CT_BOOK_UPDATE_NOT_FOUND": "The document does not exist or you do not have permission to modify it.",
-    "CT_BOOK_UPDATED_SUCCESS": "Document metadata successfully updated."
+    "CT_BOOK_UPDATED_SUCCESS": "Document metadata successfully updated.",
+    "CT_CATEGORY_NOT_FOUND": "The selected category does not exist."
 }

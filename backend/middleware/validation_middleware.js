@@ -86,7 +86,7 @@
      validateBookUpload: (req, res, next) => 
      {
          const validator = new Validator();
-         const { title, author, category, pages } = req.body;
+         const { title, author, category_id, pages } = req.body;
  
          try 
          {
@@ -99,7 +99,7 @@
  
              validator.validateThis(title).with(new Required("CT_REQ_TITLE"));
              validator.validateThis(author).with(new Required("CT_REQ_AUTHOR"));
-             validator.validateThis(category).with(new Required("CT_REQ_CATEGORY"));
+             validator.validateThis(category_id).with(new PositiveNumber("CT_REQ_CATEGORY"));
              validator.validateThis(pages).with(new PositiveNumber("CT_PAGES_POSITIVE"));
  
              next();
@@ -123,14 +123,14 @@
     {
         const validator = new Validator();
         const { id } = req.params;
-        const { title, author, category, pages } = req.body || {};
+        const { title, author, category_id, pages } = req.body || {};
 
         try 
         {
             validator.validateThis(id).with(new PositiveNumber("CT_BOOK_ID_INVALID"));
             validator.validateThis(title).with(new Required("CT_REQ_TITLE"));
             validator.validateThis(author).with(new Required("CT_REQ_AUTHOR"));
-            validator.validateThis(category).with(new Required("CT_REQ_CATEGORY"));
+            validator.validateThis(category_id).with(new PositiveNumber("CT_REQ_CATEGORY"));
             validator.validateThis(pages).with(new PositiveNumber("CT_PAGES_POSITIVE"));
 
             next();
