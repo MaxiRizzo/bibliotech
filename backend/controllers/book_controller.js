@@ -28,7 +28,7 @@
      {
          try 
          {
-             const { title, author, category, pages } = req.body;
+             const { title, author, category_id, pages } = req.body;
              const userId = req.userId;
              const filename = req.file.filename;
              const filePath = `/uploads/${filename}`;
@@ -39,7 +39,7 @@
                  filename,
                  title,
                  author,
-                 category,
+                 category_id: parseInt(category_id),
                  pages: parseInt(pages) || 0,
                  file_path: filePath
              });
@@ -134,12 +134,12 @@
         {
             const { id } = req.params;
             const userId = req.userId;
-            const { title, author, category, pages } = req.body;
+            const { title, author, category_id, pages } = req.body;
 
             const updatedBook = await bookRepository.update(id, userId, {
                 title: String(title).trim(),
                 author: String(author).trim(),
-                category: String(category).trim(),
+                category_id: parseInt(category_id),
                 pages: parseInt(pages)
             });
 

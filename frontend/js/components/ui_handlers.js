@@ -244,7 +244,7 @@ function showEditBookModal(book, onSave)
             const data = {
                 title: inputTitle.value,
                 author: inputAuthor.value,
-                category: selectCategory.value,
+                category_id: Number(selectCategory.value),
                 pages: Number(inputPages.value)
             };
 
@@ -290,18 +290,19 @@ function showEditBookModal(book, onSave)
         });
     }
 
-    // Si la categoría guardada ya no figura en la lista, se agrega para no perderla silenciosamente al guardar
-    const currentCategory = book.category || '';
-    const categoryExists = Array.from(selectEdit.options).some(opt => opt.value === currentCategory);
+      // Si por algún motivo la categoría del libro no está en la lista cargada, se agrega para no perderla al guardar
+        const currentCategoryId = String(book.category_id);
+        const categoryExists = Array.from(selectEdit.options).some(opt => opt.value === currentCategoryId);
 
-    if (currentCategory && !categoryExists) 
-    {
-        const option = document.createElement('option');
-        option.value = currentCategory;
-        option.textContent = currentCategory;
-        selectEdit.appendChild(option);
-    }
+        if (!categoryExists) 
+        {
+            const option = document.createElement('option');
+            option.value = currentCategoryId;
+            option.textContent = book.category;
+            selectEdit.appendChild(option);
+     }
 
-    selectEdit.value = currentCategory;
+        // Las opciones usan el id como value, por eso se preselecciona por category_id y no por el nombre
+        selectEdit.value = currentCategoryId;
     modal.style.display = 'block';
 }

@@ -36,7 +36,16 @@
              const message = i18n.getMessage('CT_MYSQL_ER_DUP_ENTRY');
              return res.status(409).json({ message });
          }
- 
+        /**
+          * @note Requerimiento C: si llega un category_id inexistente, MySQL rechaza la FK con este código.
+          * Es un error del cliente, por eso se traduce a 400 y no a 500.
+          */
+         if (err.code === 'ER_NO_REFERENCED_ROW_2') 
+         {
+             const message = i18n.getMessage('CT_CATEGORY_NOT_FOUND');
+             return res.status(400).json({ message });
+         }
+
          if (err.code === 'ECONNREFUSED') 
          {
              const message = i18n.getMessage('CT_MYSQL_ECONNREFUSED');
