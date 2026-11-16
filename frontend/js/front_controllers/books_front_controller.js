@@ -151,12 +151,20 @@
          showModal('Error', error.message);
      }
  }
-
+/**
+  * @brief Abre el modal de edición para un libro de la tabla.
+  * @param {Object} book - Libro seleccionado.
+  */
  function openEditBook(book) 
  {
     showEditBookModal(book, (data) => updateBook(book.id, data));
  }
-
+ /**
+  * @brief Envía el PUT con los metadatos nuevos y refresca la tabla.
+  * @param {number} id - Id del libro.
+  * @param {Object} data - JSON con title, author, category_id y pages.
+  * @note No captura errores: el modal de edición los muestra sin cerrarse.
+  */
  async function updateBook(id, data) 
  {
     await apiService.request(`/books/${id}`, 'PUT', data);

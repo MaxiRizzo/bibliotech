@@ -35,6 +35,11 @@
   */
  router.get('/my-books', bookController.getMyBooks);
  
+ /**
+  * @route PUT /api/books/:id
+  * @brief Editar los metadatos de un documento (sin volver a subir el PDF).
+  * @note Pipeline: verifyToken (router.use) -> validateBookUpdate -> bookController.updateBook.
+  */
  router.put('/:id', validateBookUpdate, bookController.updateBook);
  /**
   * @route DELETE /api/books/:id
