@@ -269,12 +269,25 @@ BEGIN
     DELETE FROM books WHERE id = p_id AND user_id = p_user_id;
 END //
 
+/**
+ * @brief Actualiza los metadatos de un libro validando que pertenezca al usuario.
+ * @param p_id Id del libro a modificar.
+ * @param p_user_id Id del usuario autenticado (propietario esperado).
+ * @param p_title Nuevo título.
+ * @param p_author Nuevo autor.
+ * @param p_category_id Nueva categoría (FK hacia categories).
+ * @param p_pages Nueva cantidad de páginas.
+ * @return El libro actualizado con el nombre de su categoría; 0 filas si no existe o es de otro usuario.
+ * @note Seguridad: el WHERE incluye user_id para evitar IDOR. Se devuelve el mismo resultado
+ * (0 filas) si el libro no existe o es ajeno, así no se revela cuál de los dos casos ocurrió.
+ * @note Solo se tocan metadatos: el PDF físico no se vuelve a subir.
+ */
 CREATE PROCEDURE sp_update_book_metadata(
        IN p_id INT,
        IN p_user_id INT,
        IN p_title VARCHAR(100),
        IN p_author VARCHAR(100),
-       IN p_category_id INT
+       IN p_category_id INT,
        IN p_pages INT
    )
    BEGIN
