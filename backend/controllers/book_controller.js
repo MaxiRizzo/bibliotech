@@ -128,36 +128,41 @@
          }
      }
 
+     /**
+      * @brief Modifica los metadatos de un documento existente (PUT /api/books/:id).
+      * @param {Object} req - Petición HTTP (req.params.id, req.userId y req.body validado).
+      * @param {Object} res - Respuesta HTTP.
+      * @param {Function} next - Delega errores al global_error_middleware.
+      * @note Se responde 404 tanto si el libro no existe como si es ajeno, para no revelar su existencia.
+      */
      async updateBook(req, res, next) 
-    {
-        try 
-        {
-            const { id } = req.params;
-            const userId = req.userId;
-            const { title, author, category_id, pages } = req.body;
+     {
+         try 
+         {
+             const { id } = req.params;
+             const { title, author, category_id, pages } = req.body;
 
-            const updatedBook = await bookRepository.update(id, userId, {
-                title: String(title).trim(),
-                author: String(author).trim(),
-                category_id: parseInt(category_id),
-                pages: parseInt(pages)
-            });
+             const updatedBook = await bookRepository.update(id, req.userId, {
+                 title: String(title).trim(),
+                 author: String(author).trim(),
+                 category_id: parseInt(category_id),
+                 pages: parseInt(pages)
+             });
 
-        // Sin fila devuelta: el libro no existe o pertenece a otro usuario (se responde igual para no revelar cuál de los dos casos es)
-        if (!updatedBook) 
-        {
-            const message = i18n.getMessage('CT_BOOK_UPDATE_NOT_FOUND');
-            return res.status(404).json({ message });
-        }
+             if (!updatedBook) 
+             {
+                 const message = i18n.getMessage('CT_BOOK_UPDATE_NOT_FOUND');
+                 return res.status(404).json({ message });
+             }
 
-        const message = i18n.getMessage('CT_BOOK_UPDATED_SUCCESS');
-        res.json({ message, book: updatedBook });
-    }
-    catch (error)
-    {
-        next(error);
-    }
-    }
+             const message = i18n.getMessage('CT_BOOK_UPDATED_SUCCESS');
+             res.json({ message, book: updatedBook });
+         }
+         catch (error)
+         {
+             next(error);
+         }
+     }
  }
  
  module.exports = new BookController();

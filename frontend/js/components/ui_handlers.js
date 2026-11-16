@@ -136,8 +136,15 @@
      modal.style.display = 'block';
  }
 
+ /** @brief Callback de guardado vigente del modal de edición; se reasigna en cada apertura. */
  let editBookSaveHandler = null;
-
+ 
+/**
+* @brief Agrega una etiqueta y su control a un formulario.
+* @param {HTMLFormElement} form - Formulario destino.
+* @param {string} labelText - Texto de la etiqueta (textContent, Zero-innerHTML).
+* @param {HTMLElement} control - Input o select ya construido.
+*/
  function appendFormField(form, labelText, control) 
 {
     const label = document.createElement('label');
@@ -146,6 +153,12 @@
     form.append(label, control);
 }
 
+/**
+* @brief Construye (una sola vez) y abre el modal de edición de metadatos.
+* @param {Object} book - Libro a editar (title, author, category_id, pages, category).
+* @param {Function} onSave - Función async que recibe los datos y envía el PUT; si lanza, el modal muestra el error.
+* @note Las categorías se copian de #category para tener una única fuente de verdad.
+*/
 function showEditBookModal(book, onSave) 
 {
     let modal = document.getElementById('editBookModal');
